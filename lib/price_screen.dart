@@ -64,21 +64,21 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   void getData(String selectedCurrency) async {
-    for (int i = 0; i < cryptoList.length; i++) {
-      String baseCurrency = cryptoList[i];
-      var data = await coinData.getCoinData(
-          baseCurrency: baseCurrency, selectedCurrency: selectedCurrency);
+//    for (int i = 0; i < cryptoList.length; i++) {
+    String baseCurrency = cryptoList[0];
+    var data = await coinData.getCoinData(
+        baseCurrency: baseCurrency, selectedCurrency: selectedCurrency);
 
-      var decodedData = jsonDecode(data);
-      String base = decodedData['asset_id_base'];
-      double rate = decodedData['rate'];
-      print('base: $base, selectedCurrency: $selectedCurrency, rate: $rate');
-      String rateString = rate.toStringAsFixed(2);
-      setState(() {
-        this.selectedCurrency = selectedCurrency;
-        this.rates[baseCurrency] = rateString;
-      });
-    }
+    var decodedData = jsonDecode(data);
+    String base = decodedData['asset_id_base'];
+    double rate = decodedData['rate'];
+    print('base: $base, selectedCurrency: $selectedCurrency, rate: $rate');
+    String rateString = rate.toStringAsFixed(2);
+    setState(() {
+      this.selectedCurrency = selectedCurrency;
+      this.rates[baseCurrency] = rateString;
+    });
+//    }
   }
 
   @override
