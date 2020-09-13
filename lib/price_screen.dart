@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'coin_data.dart';
+import 'package:bitcoin_ticker/coin_data.dart';
 import 'dart:io' show Platform;
+import 'coin_card.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -10,6 +13,12 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
+  CoinData coinData = CoinData();
+  Map<String, String> rates = {
+    'BTC': '?',
+    'ETH': '?',
+    'LTC': '?',
+  };
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownItems = [];
@@ -27,6 +36,8 @@ class _PriceScreenState extends State<PriceScreen> {
       onChanged: (value) {
         setState(() {
           selectedCurrency = value;
+          print(selectedCurrency);
+          getData(selectedCurrency);
         });
       },
     );
@@ -42,18 +53,38 @@ class _PriceScreenState extends State<PriceScreen> {
       backgroundColor: Colors.lightBlue,
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) {
-        print(selectedIndex);
+        print(currenciesList[selectedIndex]);
+        setState(() {
+          selectedCurrency = currenciesList[selectedIndex];
+        });
+        getData(currenciesList[selectedIndex]);
       },
       children: pickerItems,
     );
   }
 
-  //TODO: Create a method here called getData() to get the coin data from coin_data.dart
+  void getData(String selectedCurrency) async {
+    for (int i = 0; i < cryptoList.length; i++) {
+      String baseCurrency = cryptoList[i];
+      var data = await coinData.getCoinData(
+          baseCurrency: baseCurrency, selectedCurrency: selectedCurrency);
+
+      var decodedData = jsonDecode(data);
+      String base = decodedData['asset_id_base'];
+      double rate = decodedData['rate'];
+      print('base: $base, selectedCurrency: $selectedCurrency, rate: $rate');
+      String rateString = rate.toStringAsFixed(2);
+      setState(() {
+        this.selectedCurrency = selectedCurrency;
+        this.rates[baseCurrency] = rateString;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    //TODO: Call getData() when the screen loads up.
+    getData(selectedCurrency);
   }
 
   @override
@@ -66,28 +97,18 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  //TODO: Update the Text Widget with the live bitcoin data here.
-                  '1 BTC = ? USD',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          Coin_card(
+              base: 'BTC',
+              rate: rates['BTC'],
+              selectedCurrency: selectedCurrency),
+          Coin_card(
+              base: 'ETH',
+              rate: rates['ETH'],
+              selectedCurrency: selectedCurrency),
+          Coin_card(
+              base: 'LTC',
+              rate: rates['LTC'],
+              selectedCurrency: selectedCurrency),
           Container(
             height: 150.0,
             alignment: Alignment.center,
